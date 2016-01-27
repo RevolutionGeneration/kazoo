@@ -346,7 +346,7 @@ maybe_send_update(User, Props) ->
         {'ok', Stalkers} ->
             send_update(Stalkers, Props);
         {'error', 'not_found'} ->
-            lager:debug("no ~s subscriptions for ~s",[?DIALOG_EVENT, User])
+            lager:debug("no ~s subscriptions for ~s", [?DIALOG_EVENT, User])
     end.
 
 -spec send_update(binaries(), wh_proplist()) -> 'ok'.

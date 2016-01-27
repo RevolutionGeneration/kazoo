@@ -310,8 +310,8 @@ owner_timezone(Box, Default) ->
         OwnerJObj -> owner_timezone(Box, Default, OwnerJObj)
     end.
 
--spec owner(doc()) -> kzd_user:doc() | 'undefined'.
--spec owner(doc(), ne_binary()) -> kzd_user:doc() | 'undefined'.
+-spec owner(doc()) -> api(kzd_user:doc()).
+-spec owner(doc(), ne_binary()) -> api(kzd_user:doc()).
 owner(Box) ->
     case owner_id(Box) of
         'undefined' -> 'undefined';
@@ -319,10 +319,7 @@ owner(Box) ->
     end.
 
 owner(Box, OwnerId) ->
-    case kz_datamgr:open_cache_doc(wh_doc:account_db(Box)
-                                  ,OwnerId
-                                  )
-    of
+    case kz_datamgr:open_cache_doc(wh_doc:account_db(Box), OwnerId) of
         {'ok', OwnerJObj} -> OwnerJObj;
         {'error', 'not_found'} -> 'undefined'
     end.

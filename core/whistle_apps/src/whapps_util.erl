@@ -193,7 +193,7 @@ is_master_account(Account) ->
 %% @doc
 %% @end
 %%--------------------------------------------------------------------
--spec account_depth(ne_binary()) -> 'undefined' | non_neg_integer().
+-spec account_depth(ne_binary()) -> non_neg_integer().
 account_depth(Account) ->
     {'ok', JObj} = kz_account:fetch(Account),
     length(kz_account:tree(JObj)).

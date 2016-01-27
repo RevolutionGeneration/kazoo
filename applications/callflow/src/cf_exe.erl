@@ -60,8 +60,8 @@
 -record(state, {call = whapps_call:new() :: whapps_call:call()
                 ,flow = wh_json:new() :: wh_json:object()
                 ,flows = [] :: wh_json:objects()
-                ,cf_module_pid :: {pid(), reference()} | 'undefined'
-                ,cf_module_old_pid :: {pid(), reference()} | 'undefined'
+                ,cf_module_pid :: api({pid(), reference()})
+                ,cf_module_old_pid :: api({pid(), reference()})
                 ,status = <<"sane">> :: ne_binary()
                 ,queue :: api_binary()
                 ,self = self()
@@ -641,7 +641,7 @@ launch_cf_module(#state{call=Call
                }.
 
 -spec maybe_start_cf_module(ne_binary(), wh_proplist(), whapps_call:call()) ->
-                                   {{pid(), reference()} | 'undefined', atom()}.
+                                   {api({pid(), reference()}), atom()}.
 maybe_start_cf_module(ModuleBin, Data, Call) ->
     CFModule = wh_util:to_atom(ModuleBin, 'true'),
     try CFModule:module_info('exports') of
@@ -784,7 +784,7 @@ relay_message(Notify, Message) ->
         ],
     'ok'.
 
--spec get_pid({pid(), reference()} | 'undefined') -> pid().
+-spec get_pid(api({pid(), reference()})) -> pid().
 get_pid({Pid, _}) when is_pid(Pid) -> Pid;
 get_pid(_) -> 'undefined'.
 

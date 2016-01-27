@@ -27,15 +27,15 @@
 -define(SERVER, ?MODULE).
 
 -record(state, {request       :: wh_proplist()
-                ,timer        :: 'undefined' | reference()
+                ,timer        :: api_reference()
                 ,schedule     :: pos_integers()
                 ,check = 'true' :: check_fun()
                }).
 
 -type state() :: #state{}.
 
--spec start_link(wh_proplist(), pos_integers()) -> {'ok', pid()} | {'error', term()}.
--spec start_link(wh_proplist(), pos_integers(), check_fun()) -> {'ok', pid()} | {'error', term()}.
+-spec start_link(wh_proplist(), pos_integers()) -> startlink_ret().
+-spec start_link(wh_proplist(), pos_integers(), check_fun()) -> startlink_ret().
 start_link(Req, [_ | _] = Schedule) ->
     start_link(#state{request = Req, schedule = Schedule}).
 
@@ -45,7 +45,7 @@ start_link(Req, [_ | _] = Schedule, CheckFun) ->
                       ,check = CheckFun
                      }).
 
--spec start_link(state()) -> {'ok', pid()} | {'error', term()}.
+-spec start_link(state()) -> startlink_ret().
 start_link(#state{} = State) ->
     gen_server:start_link(?SERVER, State, []).
 
