@@ -1,7 +1,7 @@
 -ifndef(KAZOO_CACHES_HRL).
 
--define(WHAPPS_CONFIG_CACHE, 'whapps_config_cache').
--define(WHAPPS_CALL_CACHE, 'whapps_call_cache').
+-define(KAPPS_CONFIG_CACHE, 'kapps_config_cache').
+-define(KAPPS_CALL_CACHE, 'kapps_call_cache').
 
 -define(KAZOO_CACHES_HRL, 'true').
 -endif.

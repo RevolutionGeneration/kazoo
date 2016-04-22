@@ -1,15 +1,15 @@
 -ifndef(KZ_DATA_HRL).
--include_lib("whistle/include/wh_types.hrl"). % get the whistle types
--include_lib("whistle/include/wh_log.hrl").
--include_lib("whistle/include/wh_databases.hrl").
--include_lib("whistle/include/kz_system_config.hrl").
+-include_lib("kazoo/include/kz_types.hrl"). % get the kazoo types
+-include_lib("kazoo/include/kz_log.hrl").
+-include_lib("kazoo/include/kz_databases.hrl").
+-include_lib("kazoo/include/kz_system_config.hrl").
 
 -define(KZ_DATA_CACHE, 'kazoo_data_cache').
 -define(KZ_DP_CACHE, 'kazoo_data_plan_cache').
 
 -define(CONFIG_CAT, <<"datamgr">>).
 
--record(data_connection, {id = wh_util:current_tstamp()
+-record(data_connection, {id = kz_util:current_tstamp()
                           ,app :: atom() | '$1'
                           ,props = #{} :: #{} | '_'
                           ,server :: any() | '$2'
@@ -62,7 +62,7 @@
 
 -type stale() :: 'ok' | 'update_after'.
 
--type key_range() :: binary() | [binary() | wh_json:object()].
+-type key_range() :: binary() | [binary() | kz_json:object()].
 
 -type view_option() :: 'conflicts' |
                        'descending' |
@@ -96,7 +96,7 @@
 -type docid() :: ne_binary() | {ne_binary(), ne_binary()}.
 -type docids() :: ne_binary() | {ne_binary(), ne_binaries()}.
 
--type get_results_return() :: {'ok', wh_json:objects() | wh_json:keys()} |
+-type get_results_return() :: {'ok', kz_json:objects() | kz_json:keys()} |
                               data_error().
 
 -define(DEFAULT_DATA_SECTION, [{local, bigcouch}]).

@@ -51,7 +51,7 @@ do_get([Num|Nums], Options, Acc) ->
 %% @doc
 %% @end
 %%--------------------------------------------------------------------
--spec create(wh_proplist()) -> numbers_return().
+-spec create(kz_proplist()) -> numbers_return().
 create(Props) ->
     do_create(Props, []).
 
@@ -59,7 +59,7 @@ create(Props) ->
 create(Nums, Options) ->
     [{Num, knm_number:create(Num, Options)} || Num <- Nums].
 
--spec do_create(wh_proplist(), numbers_return()) -> numbers_return().
+-spec do_create(kz_proplist(), numbers_return()) -> numbers_return().
 do_create([], Acc) -> Acc;
 do_create([{Num, Data}|Props], Acc) ->
     Return = knm_number:create(Num, Data),
@@ -70,9 +70,9 @@ do_create([{Num, Data}|Props], Acc) ->
 %% @doc
 %% @end
 %%--------------------------------------------------------------------
--spec move(wh_proplist()) ->
+-spec move(kz_proplist()) ->
                   numbers_return().
--spec move(wh_proplist(), knm_number_options:options()) ->
+-spec move(kz_proplist(), knm_number_options:options()) ->
                   numbers_return().
 -spec move(ne_binaries(), ne_binary(), knm_number_options:options()) ->
                   numbers_return().
@@ -85,7 +85,7 @@ move(Props, Options) ->
 move(Nums, MoveTo, Options) ->
     [{Num, knm_number:move(Num, MoveTo, Options)} || Num <- Nums].
 
--spec do_move(wh_proplist(), knm_number_options:options(), numbers_return()) ->
+-spec do_move(kz_proplist(), knm_number_options:options(), numbers_return()) ->
                      numbers_return().
 do_move([], _Options, Acc) -> Acc;
 do_move([{Num, MoveTo}|Props], Options, Acc) ->
@@ -97,9 +97,9 @@ do_move([{Num, MoveTo}|Props], Options, Acc) ->
 %% @doc
 %% @end
 %%--------------------------------------------------------------------
--spec update(wh_proplist()) ->
+-spec update(kz_proplist()) ->
                     numbers_return().
--spec update(wh_proplist(), knm_number_options:options()) ->
+-spec update(kz_proplist(), knm_number_options:options()) ->
                     numbers_return().
 -spec update(ne_binaries(), knm_phone_number:set_functions(), knm_number_options:options()) ->
                     numbers_return().
@@ -112,7 +112,7 @@ update(Props, Options) ->
 update(Nums, Routines, Options) ->
     [{Num, knm_number:update(Num, Routines, Options)} || Num <- Nums].
 
--spec do_update(wh_proplist(), knm_number_options:options(), numbers_return()) ->
+-spec do_update(kz_proplist(), knm_number_options:options(), numbers_return()) ->
                        numbers_return().
 do_update([], _Options, Acc) -> Acc;
 do_update([{Num, Data}|Props], Options, Acc) ->
@@ -156,9 +156,9 @@ release(Nums, Options) ->
 %% @doc
 %% @end
 %%--------------------------------------------------------------------
--spec change_state(wh_proplist()) ->
+-spec change_state(kz_proplist()) ->
                           numbers_return().
--spec change_state(wh_proplist(), knm_number_options:options()) ->
+-spec change_state(kz_proplist(), knm_number_options:options()) ->
                           numbers_return().
 change_state(Props) ->
     change_state(Props, knm_number_options:default()).
@@ -166,7 +166,7 @@ change_state(Props) ->
 change_state(Props, Options) ->
     do_change_state(Props, Options, []).
 
--spec do_change_state(wh_proplist(), knm_number_options:options(), numbers_return()) ->
+-spec do_change_state(kz_proplist(), knm_number_options:options(), numbers_return()) ->
                              numbers_return().
 do_change_state([], _Options, Acc) -> Acc;
 do_change_state([{Num, State}|Props], Options, Acc) ->
@@ -182,9 +182,9 @@ do_change_state([{Num, State}|Props], Options, Acc) ->
 %% @doc
 %% @end
 %%--------------------------------------------------------------------
--spec assigned_to_app(wh_proplist()) ->
+-spec assigned_to_app(kz_proplist()) ->
                              numbers_return().
--spec assigned_to_app(wh_proplist(), knm_number_options:options()) ->
+-spec assigned_to_app(kz_proplist(), knm_number_options:options()) ->
                              numbers_return().
 assigned_to_app(Props) ->
     assigned_to_app(Props, knm_number_options:default()).
@@ -192,7 +192,7 @@ assigned_to_app(Props) ->
 assigned_to_app(Props, Options) ->
     do_assigned_to_app(Props, Options, []).
 
--spec do_assigned_to_app(wh_proplist(), knm_number_options:options(), numbers_return()) ->
+-spec do_assigned_to_app(kz_proplist(), knm_number_options:options(), numbers_return()) ->
                                 numbers_return().
 do_assigned_to_app([], _Options, Acc) -> Acc;
 do_assigned_to_app([{Num, App}|Props], Options, Acc) ->
@@ -207,7 +207,7 @@ do_assigned_to_app([{Num, App}|Props], Options, Acc) ->
 -spec free(ne_binary()) -> 'ok'.
 free(AccountId)
   when is_binary(AccountId) ->
-    AccountDb = wh_util:format_account_id(AccountId, 'encoded'),
+    AccountDb = kz_util:format_account_id(AccountId, 'encoded'),
     case kz_datamgr:open_cache_doc(AccountDb, ?KNM_PHONE_NUMBERS_DOC) of
         {'ok', JObj} ->
             free_numbers(AccountId, JObj);
@@ -217,10 +217,10 @@ free(AccountId)
                        )
     end.
 
--spec free_numbers(ne_binary(), wh_json:object()) -> 'ok'.
+-spec free_numbers(ne_binary(), kz_json:object()) -> 'ok'.
 free_numbers(AccountId, JObj) ->
     _ = [maybe_free_number(AccountId, DID)
-         || DID <- wh_json:get_public_keys(JObj)],
+         || DID <- kz_json:get_public_keys(JObj)],
     'ok'.
 
 -spec maybe_free_number(ne_binary(), ne_binary()) -> 'ok'.
@@ -270,11 +270,11 @@ check_to_free_number(_AccountId, Number, _OtherAccountId) ->
 -spec emergency_enabled(ne_binary()) -> {'ok', knm_number:knm_numbers()} |
                                         {'error', any()}.
 emergency_enabled(Account = ?NE_BINARY) ->
-    AccountDb = wh_util:format_account_id(Account, 'encoded'),
+    AccountDb = kz_util:format_account_id(Account, 'encoded'),
     case kz_datamgr:open_cache_doc(AccountDb, ?KNM_PHONE_NUMBERS_DOC) of
         {'ok', JObj} ->
-            Numbers = wh_json:get_keys(wh_json:public_fields(JObj)),
-            Options = [{'assigned_to', wh_util:format_account_id(Account)}
+            Numbers = kz_json:get_keys(kz_json:public_fields(JObj)),
+            Options = [{'assigned_to', kz_util:format_account_id(Account)}
                       ],
             PhoneNumbers = fetch(Numbers, Options),
             EnabledNumbers =

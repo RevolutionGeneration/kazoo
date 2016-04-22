@@ -8,8 +8,8 @@
                  , stdlib
                  , crypto
 
-                 , whistle
-                 , whistle_amqp
+                 , kazoo
+                 , kazoo_amqp
                  , kazoo_data
 
                  , lager

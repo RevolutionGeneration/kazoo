@@ -23,8 +23,8 @@
 
 -include("kz_data.hrl").
 
--spec open_cache_doc(text(), ne_binary(), wh_proplist()) ->
-                            {'ok', wh_json:object()} |
+-spec open_cache_doc(text(), ne_binary(), kz_proplist()) ->
+                            {'ok', kz_json:object()} |
                             data_error() |
                             {'error', 'not_found'}.
 open_cache_doc(DbName, DocId, Options) ->
@@ -42,8 +42,8 @@ open_cache_doc(DbName, DocId, Options) ->
             end
     end.
 
--spec open_cache_doc(map(), text(), ne_binary(), wh_proplist()) ->
-                            {'ok', wh_json:object()} |
+-spec open_cache_doc(map(), text(), ne_binary(), kz_proplist()) ->
+                            {'ok', kz_json:object()} |
                             data_error() |
                             {'error', 'not_found'}.
 open_cache_doc(Server, DbName, DocId, Options) ->
@@ -61,12 +61,12 @@ open_cache_doc(Server, DbName, DocId, Options) ->
             end
     end.
 
--spec remove_cache_options(wh_proplist()) -> wh_proplist().
+-spec remove_cache_options(kz_proplist()) -> kz_proplist().
 remove_cache_options(Options) ->
     props:delete_keys(['cache_failures'], Options).
 
--spec maybe_cache_failure(ne_binary(), ne_binary(), wh_proplist(), data_error()) -> 'ok'.
--spec maybe_cache_failure(ne_binary(), ne_binary(), wh_proplist(), data_error(), atoms()) -> 'ok'.
+-spec maybe_cache_failure(ne_binary(), ne_binary(), kz_proplist(), data_error()) -> 'ok'.
+-spec maybe_cache_failure(ne_binary(), ne_binary(), kz_proplist(), data_error(), atoms()) -> 'ok'.
 maybe_cache_failure(DbName, DocId, Options, Error) ->
     case props:get_value('cache_failures', Options) of
         ErrorCodes when is_list(ErrorCodes) ->
@@ -81,17 +81,17 @@ maybe_cache_failure(DbName, DocId, _Options, {'error', ErrorCode}=Error, ErrorCo
         'false' -> 'ok'
     end.
 
--spec add_to_doc_cache(ne_binary(), ne_binary(), wh_json:object() | data_error()) -> 'ok'.
+-spec add_to_doc_cache(ne_binary(), ne_binary(), kz_json:object() | data_error()) -> 'ok'.
 add_to_doc_cache(DbName, DocId, CacheValue) ->
     CacheProps = [{'origin', {'db', DbName, DocId}}],
-    case wh_json:is_json_object(CacheValue) of
+    case kz_json:is_json_object(CacheValue) of
         'true' ->
            cache_if_not_media(CacheProps, DbName, DocId, CacheValue);
         'false' ->
             kz_cache:store_local(?KZ_DATA_CACHE, {?MODULE, DbName, DocId}, CacheValue, CacheProps)
     end.
 
--spec cache_if_not_media(wh_proplist(), ne_binary(), ne_binary(), wh_json:object() | data_error()) -> 'ok'.
+-spec cache_if_not_media(kz_proplist(), ne_binary(), ne_binary(), kz_json:object() | data_error()) -> 'ok'.
 cache_if_not_media(CacheProps, DbName, DocId, CacheValue) ->
     %% NOTE: this is currently necessary because when a http_put is issued to
     %%   freeswitch and the media is uploaded it goes directly to bigcouch
@@ -101,33 +101,33 @@ cache_if_not_media(CacheProps, DbName, DocId, CacheValue) ->
     %%   message bus anytime a http_put is issued (or maybe if the store
     %%   url is built in media IF everything uses that helper function,
     %    which is not currently the case...)
-    case wh_doc:type(CacheValue) of
+    case kz_doc:type(CacheValue) of
         <<"media">> -> 'ok';
         <<"private_media">> -> 'ok';
         _Else ->
             kz_cache:store_local(?KZ_DATA_CACHE, {?MODULE, DbName, DocId}, CacheValue, CacheProps)
     end.
 
--spec flush_cache_doc(ne_binary() | db(), ne_binary() | wh_json:object()) -> 'ok'.
+-spec flush_cache_doc(ne_binary() | db(), ne_binary() | kz_json:object()) -> 'ok'.
 flush_cache_doc(#db{name=Name}, Doc) ->
     flush_cache_doc(#db{name=Name}, Doc, []);
 flush_cache_doc(Db, Doc) when is_binary(Db) ->
     flush_cache_doc(Db, Doc, []).
 
--spec flush_cache_doc(ne_binary() | db(), ne_binary() | wh_json:object(), wh_proplist()) -> 'ok'.
+-spec flush_cache_doc(ne_binary() | db(), ne_binary() | kz_json:object(), kz_proplist()) -> 'ok'.
 flush_cache_doc(#db{name=Name}, Doc, Options) ->
-    flush_cache_doc(wh_util:to_binary(Name), Doc, Options);
+    flush_cache_doc(kz_util:to_binary(Name), Doc, Options);
 flush_cache_doc(DbName, DocId, _Options) when is_binary(DocId) ->
     kz_cache:erase_local(?KZ_DATA_CACHE, {?MODULE, DbName, DocId});
 flush_cache_doc(DbName, Doc, Options) ->
-    flush_cache_doc(DbName, wh_doc:id(Doc), Options).
+    flush_cache_doc(DbName, kz_doc:id(Doc), Options).
 
 -spec flush_cache_docs() -> 'ok'.
 flush_cache_docs() -> kz_cache:flush_local(?KZ_DATA_CACHE).
 
 -spec flush_cache_docs(ne_binary() | db()) -> 'ok'.
 flush_cache_docs(#db{name=Name}) ->
-    flush_cache_docs(wh_util:to_binary(Name));
+    flush_cache_docs(kz_util:to_binary(Name));
 flush_cache_docs(DbName) ->
     Filter = fun({?MODULE, DbName1, _DocId}=K, _) when DbName1 =:= DbName ->
                      kz_cache:erase_local(?KZ_DATA_CACHE, K),
@@ -137,11 +137,11 @@ flush_cache_docs(DbName) ->
     _ = kz_cache:filter_local(?KZ_DATA_CACHE, Filter),
     'ok'.
 
--spec flush_cache_docs(ne_binary() | db(), ne_binaries() | wh_json:objects()) -> 'ok'.
+-spec flush_cache_docs(ne_binary() | db(), ne_binaries() | kz_json:objects()) -> 'ok'.
 flush_cache_docs(Db, Docs) ->
     flush_cache_docs(Db, Docs, []).
 
--spec flush_cache_docs(ne_binary() | db(), ne_binaries() | wh_json:objects(), wh_proplist()) -> 'ok'.
+-spec flush_cache_docs(ne_binary() | db(), ne_binaries() | kz_json:objects(), kz_proplist()) -> 'ok'.
 flush_cache_docs(Db, Docs, Options) ->
     _ = [flush_cache_doc(Db, Doc, Options)
          || Doc <- Docs

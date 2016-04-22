@@ -1,11 +1,11 @@
 Create the media files one by one in BigCouch like so..
 
-sup whistle_media_maintenance import_prompt /opt/kazoo/system_media/dir-enter_person_lastname.wav en-us
+sup kazoo_media_maintenance import_prompt /opt/kazoo/system_media/dir-enter_person_lastname.wav en-us
 
 or import it all at once like
 
-sup whistle_media_maintenance import_prompts /opt/kazoo/system_media/en-us/ en-us
-sup whistle_media_maintenance import_prompts /opt/kazoo/system_media/fr-ca/ fr-ca
+sup kazoo_media_maintenance import_prompts /opt/kazoo/system_media/en-us/ en-us
+sup kazoo_media_maintenance import_prompts /opt/kazoo/system_media/fr-ca/ fr-ca
 
 This is documented here for convenience, but more information is available in the docs.
 

@@ -17,13 +17,13 @@
 -define(SERVER, ?MODULE).
 
 -define(ORIGIN_BINDINGS, [[{'type', <<"account">>}]
-                          ,[{'db', ?WH_CONFIG_DB}]
+                          ,[{'db', ?KZ_CONFIG_DB}]
                          ]).
 -define(CACHE_PROPS, [{'origin_bindings', ?ORIGIN_BINDINGS}]).
 
 %% Helper macro for declaring children of supervisor
--define(CHILDREN, [?CACHE_ARGS(?WHAPPS_CONFIG_CACHE, ?CACHE_PROPS)
-                   ,?CACHE(?WHAPPS_CALL_CACHE)
+-define(CHILDREN, [?CACHE_ARGS(?KAPPS_CONFIG_CACHE, ?CACHE_PROPS)
+                   ,?CACHE(?KAPPS_CALL_CACHE)
                   ]).
 
 %% ===================================================================
