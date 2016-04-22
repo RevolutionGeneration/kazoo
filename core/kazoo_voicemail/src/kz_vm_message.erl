@@ -78,7 +78,7 @@ new_message(AttachmentName, BoxNum, Timezone, Call, Props) ->
     lager:debug("saving new ~bms voicemail media and metadata", [Length]),
 
     {MediaId, MediaUrl} = create_message_doc(AttachmentName, BoxNum, Call, Timezone, Props),
-    
+
     Msg = io_lib:format("failed to store voicemail media ~s in voicemail box ~s of account ~s"
                         ,[MediaId, BoxId, whapps_call:account_id(Call)]
                        ),
@@ -88,7 +88,7 @@ new_message(AttachmentName, BoxNum, Timezone, Call, Props) ->
             ,{fun whapps_call:kvs_store/3, 'media_id', MediaId}
             ,{fun whapps_call:kvs_store/3, 'media_length', Length}
            ],
-    
+
 
     lager:debug("storing voicemail media recording ~s in doc ~s", [AttachmentName, MediaId]),
     case store_recording(AttachmentName, MediaUrl, whapps_call:exec(Funs, Call), Props) of
