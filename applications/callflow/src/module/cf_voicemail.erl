@@ -19,7 +19,6 @@
 -include_lib("whistle/src/wh_json.hrl").
 
 -export([handle/2]).
--export([new_message/4]).
 
 -define(KEY_MEDIA_ID, <<"media_id">>).
 -define(KEY_VOICEMAIL, <<"voicemail">>).
@@ -478,7 +477,8 @@ record_voicemail(AttachmentName, #mailbox{max_message_length=MaxMessageLength}=B
                 andalso review_recording(AttachmentName, 'true', Box, Call)
             of
                 'false' ->
-                    cf_util:start_task(fun new_message/4, [AttachmentName, Length, Box], Call);
+%                    cf_util:start_task(fun new_message/4, [AttachmentName, Length, Box], Call);
+                    new_message(AttachmentName, Length, Box, Call);
                 {'ok', 'record'} ->
                     record_voicemail(tmp_file(), Box, Call);
                 {'ok', _Selection} ->
@@ -1261,8 +1261,6 @@ new_message(AttachmentName, Length, #mailbox{mailbox_number=BoxNum
                    ,{<<"Length">>, Length}
                    ,{<<"Transcribe-Voicemail">>, MaybeTranscribe}
                    ,{<<"After-Notify-Action">>, Action}
-                   ,{<<"Default-Extension">>, ?DEFAULT_VM_EXTENSION}
-                   ,{<<"Retry-Storage-Times">>, ?MAILBOX_RETRY_STORAGE_TIMES(AccountId)}
                   ],
     case kz_vm_message:new_message(AttachmentName, BoxNum, Timezone, Call, NewMsgProps) of
         'ok' -> send_mwi_update(Box, Call);

@@ -78,23 +78,22 @@ new_message(AttachmentName, BoxNum, Timezone, Call, Props) ->
     lager:debug("saving new ~bms voicemail media and metadata", [Length]),
 
     {MediaId, MediaUrl} = create_message_doc(AttachmentName, BoxNum, Call, Timezone, Props),
+    
+    Msg = io_lib:format("failed to store voicemail media ~s in voicemail box ~s of account ~s"
+                        ,[MediaId, BoxId, whapps_call:account_id(Call)]
+                       ),
+    Funs = [{fun whapps_call:kvs_store/3, 'alert_msg', Msg}
+            ,{fun whapps_call:kvs_store/3, 'mailbox_id', BoxId}
+            ,{fun whapps_call:kvs_store/3, 'attachment_name', AttachmentName}
+            ,{fun whapps_call:kvs_store/3, 'media_id', MediaId}
+            ,{fun whapps_call:kvs_store/3, 'media_length', Length}
+           ],
+    
 
     lager:debug("storing voicemail media recording ~s in doc ~s", [AttachmentName, MediaId]),
-    case store_recording(AttachmentName, MediaUrl, Call, Props) of
-        {'ok', _JObj} -> notify_and_save(Call, MediaId, Length, Props);
-        {'error', Call1} ->
-            % Db = get_db(whapps_call:account_id(Call), MediaId),
-            % _ = kz_datamgr:del_doc(Db, MediaId),
-            Msg = io_lib:format("failed to store voicemail media ~s in voicemail box ~s of account ~s"
-                                ,[MediaId, BoxId, whapps_call:account_id(Call1)]
-                               ),
-            lager:critical(Msg),
-            Funs = [{fun whapps_call:kvs_store/3, 'mailbox_id', BoxId}
-                    ,{fun whapps_call:kvs_store/3, 'attachment_name', AttachmentName}
-                    ,{fun whapps_call:kvs_store/3, 'media_id', MediaId}
-                    ,{fun whapps_call:kvs_store/3, 'media_length', Length}
-                   ],
-            {'error', whapps_call:exec(Funs, Call1), Msg}
+    case store_recording(AttachmentName, MediaUrl, whapps_call:exec(Funs, Call), Props) of
+        'ok' -> notify_and_save(Call, MediaId, Length, Props);
+        {'error', Call1} -> {'error', Call1, Msg}
     end.
 
 -spec create_message_doc(ne_binary(), ne_binary(), whapps_call:call(), ne_binary(), wh_proplist()) ->
@@ -109,10 +108,8 @@ create_message_doc(AttachmentName, BoxNum, Call, Timezone, Props) ->
                 ,(wh_util:rand_hex_binary(16))/binary
               >>,
     Doc = kzd_voice_message:new(Db, MediaId, AttachmentName, BoxNum, Timezone, Props),
-    {'ok', _} = kz_datamgr:save_doc(Db, Doc),
-
-    Opts = props:filter_undefined([{'doc_owner', props:get_value(<<"OwnerId">>, Props)}]),
-    MediaUrl = wh_media_url:store(Db, {<<"voice_message">>, MediaId}, AttachmentName, Opts),
+    {'ok', JObj} = kz_datamgr:save_doc(Db, Doc),
+    MediaUrl = wh_media_url:store(JObj, AttachmentName),
 
     {MediaId, MediaUrl}.
 
@@ -124,31 +121,12 @@ create_message_doc(AttachmentName, BoxNum, Call, Timezone, Props) ->
 -spec store_recording(ne_binary(), ne_binary(), whapps_call:call(), wh_proplist()) ->
                                  {'ok', wh_json:object()} |
                                  {'error', whapps_call:call()}.
-store_recording(AttachmentName, Url, Call, Props) ->
-    Tries = props:get_value(<<"Retry-Storage-Times">>, Props),
-    Funs = [{fun whapps_call:kvs_store/3, 'media_url', Url}],
-    try_store_recording(AttachmentName, Url, Tries, whapps_call:exec(Funs, Call)).
-
--spec try_store_recording(ne_binary(), ne_binary(), integer(), whapps_call:call()) ->
-                                 {'ok', wh_json:object()} |
-                                 {'error', whapps_call:call()}.
-try_store_recording(_, _, 0, Call) -> {'error', Call};
-try_store_recording(AttachmentName, Url, Tries, Call) ->
-    lager:error("trying to store voicemail media to url ~s", [Url]),
+store_recording(AttachmentName, Url, Call, _Props) ->
     case whapps_call_command:store_file(<<"/tmp/", AttachmentName/binary>>, Url, Call) of
-        {'ok', _}=OK -> OK;
-        Other ->
-            lager:error("error trying to store voicemail media, retrying ~B more times: ~p", [Tries - 1, Other]),
-            retry_store(AttachmentName, Url, Tries, Call, Other)
+        'ok' -> 'ok';
+        {'error', _Error} -> {'error', Call}
     end.
 
--spec retry_store(ne_binary(), ne_binary(), non_neg_integer(), whapps_call:call(), any()) ->
-                                 {'ok', wh_json:object()} |
-                                 {'error', whapps_call:call()}.
-retry_store(AttachmentName, Url, Tries, Call, Error) ->
-    timer:sleep(2000),
-    Call1 = whapps_call:kvs_store('error_details', Error, Call),
-    try_store_recording(AttachmentName, Url, Tries - 1, Call1).
 
 %%--------------------------------------------------------------------
 %% @private
@@ -409,6 +387,11 @@ move_to_modb(AccountId, DocId, JObj, Funs) ->
               ,(wh_util:rand_hex_binary(16))/binary
            >>,
     % io:format("FromDb ~p FromId ~p ToDb ~p ToId ~p ~n~n", [FromDb, FromId, ToDb, ToId]),
+%% hessam
+%% the copy_doc options allows you to give a transform fun
+%% so you can create new fields or change values
+%% check Options variable in whistle_media_maintenance:fix_media_name/1
+%%
     case kz_datamgr:copy_doc(FromDb, FromId, ToDb, ToId, []) of
         {'ok', _} ->
             SourceId = kzd_voice_message:source_id(JObj),
