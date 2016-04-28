@@ -387,8 +387,9 @@ handle_response({'ok', Code, _Headers, "<?xml"++_=Response}) ->
         verify_response(Xml)
     catch
         _:R ->
+            ST = erlang:get_stacktrace(),
             lager:debug("failed to decode xml: ~p", [R]),
-            lager:debug("st: ~p", [erlang:get_stacktrace()]),
+            wh_util:log_stacktrace(ST),
             {'error', 'empty_response'}
     end;
 handle_response({'ok', Code, _Headers, _Response}) ->
